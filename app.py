@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 from metadata_dao import Metadata_Dao
+
 app = Flask(__name__)
 
 @app.route("/")
