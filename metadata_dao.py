@@ -1,4 +1,9 @@
+import logging
+
 from util import Util
+from modals import metadata
+
+log = logging.getLogger(__name__)
 
 class Metadata_Dao:
     def __init__(self):
@@ -7,6 +12,7 @@ class Metadata_Dao:
         self.metadataColl = self.mongoConnection.metadata.metadata
 
     def fetchAllMetadata(self):
-        metadata = self.metadataColl.find({})
-        for m in metadata:
-            print (m)
+        metadata_result = self.metadataColl.find({})
+        metadata_list = []
+        for m in metadata_result:
+            metadata_list.append(metadata.Metadata.get_object(m))
