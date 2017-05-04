@@ -1,3 +1,5 @@
+
+
 document.onload = (function(d3, saveAs, Blob, undefined){
   "use strict";
 
@@ -8,6 +10,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   var settings = {
     appendElSpec: "#graph"
   };
+
+
   // define graphcreator object
   var GraphCreator = function(svg, nodes, edges){
     var thisGraph = this;
@@ -590,10 +594,42 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   var xLoc = width/2 - 25,
       yLoc = 100;
 
-  // initial node data
-  var nodes =  [{title: "new concept", id: 0, x: xLoc, y: yLoc},
-               {title: "new concept", id: 1, x: xLoc, y: yLoc + 200}];
-  var edges = [{source: nodes[1], target: nodes[0]}];
+  window.nodes = [];
+  window.edges = [];
+
+  d3.json('http://localhost:5000/metadata', function(error, data) {
+
+    function search(id, array) {
+         for(var i in array){
+           if(array[i].id == id) return array[i];
+         }
+         return null;
+    }
+      window.data = data;
+      // create nodes
+      for(var i in data){
+        var node = {};
+        node['title'] = data[i]._id.split('.')[1] + "." +data[i]._id.split('.')[2];
+        node['id'] = data[i]._id;
+          node['x'] = xLoc + 50 + (50 * i);
+          node['y'] = yLoc + 50 + (50 * i);
+        window.nodes.push(node);
+      }
+
+      for(var i in data){
+        if(data[i].depends_on.length > 0){
+         for(var j in data[i].depends_on){
+           var edge = {};
+           edge['source'] = search(data[i].depends_on[j], window.nodes);
+           edge['target'] = search(data[i]._id, window.nodes);
+           if(edge['source'] != null && edge['target'] != null)
+              window.edges.push(edge);
+         }
+        }
+
+      }
+      var nodes =  window.nodes;
+      var edges = window.edges;
 
 
   /** MAIN SVG **/
@@ -603,4 +639,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   var graph = new GraphCreator(svg, nodes, edges);
       graph.setIdCt(2);
   graph.updateGraph();
+  });
+  // initial node data
+
 })(window.d3, window.saveAs, window.Blob);
